@@ -100,6 +100,7 @@ namespace AdvancedArrayTool
             GenericMenu menu = new GenericMenu();
             menu.AddItem(new GUIContent("Grid Generator"), false, () => CreateGenerator<GridArrayGenerator>());
             menu.AddItem(new GUIContent("Circle Generator"), false, () => CreateGenerator<CircleArrayGenerator>());
+            menu.AddItem(new GUIContent("Spiral Generator"), false, () => CreateGenerator<SpiralArrayGenerator>());
             menu.ShowAsContext();
         }
 
@@ -265,20 +266,20 @@ namespace AdvancedArrayTool
 
         public override void Generate(Transform parent)
         {
-            for (int z = 0; z< Ylayers; z++)
+            for (int z = 0; z < Ylayers; z++)
             {
-                for(int y= 0; y< Rows; y++)
+                for (int y = 0; y < Rows; y++)
                 {
-                    for(int x= 0; x< Columns; x++)
+                    for (int x = 0; x < Columns; x++)
                     {
-                        Vector3 position = new Vector3(x * Spacing , y *Spacing , z * Spacing );
+                        Vector3 position = new Vector3(x * Spacing, y * Spacing, z * Spacing);
                         InstantiatePrefab(position, Quaternion.identity, parent);
                     }
                 }
             }
 
         }
-        
+
     }
 
     [System.Serializable]
@@ -316,6 +317,53 @@ namespace AdvancedArrayTool
                 InstantiatePrefab(position, rotation, parent);
             }
         }
+    }
+
+    [System.Serializable]
+    public class SpiralArrayGenerator : ArrayGeneratorBase
+    {
+        public int NumberOfObjects = 20;
+        public float RadiusStart = 1f;
+        public float RadiusGrowth = 0.2f;
+        public float HeightStep = 0.1f;
+
+        public override void Initialize()
+        {
+            Name = "Spiral Generator";
+        }
+
+        public override void DrawSettings()
+        {
+            Prefab = (GameObject)EditorGUILayout.ObjectField("Prefab", Prefab, typeof(GameObject), false);
+            NumberOfObjects = EditorGUILayout.IntField("Number of Objects", NumberOfObjects);
+            RadiusStart = EditorGUILayout.FloatField("Start Radius", RadiusStart);
+            RadiusGrowth = EditorGUILayout.FloatField("Radius Growth", RadiusGrowth);
+            HeightStep = EditorGUILayout.FloatField("Height Step", HeightStep);
+            PositionOffset = EditorGUILayout.Vector3Field("Position Offset", PositionOffset);
+            RotationOffset = EditorGUILayout.Vector3Field("Rotation Offset", RotationOffset);
+            ScaleMultiplier = EditorGUILayout.Vector3Field("Scale Multiplier", ScaleMultiplier);
+            RandomizeRotation = EditorGUILayout.Toggle("Randomize Rotation", RandomizeRotation);
+            RandomizeScale = EditorGUILayout.Toggle("Randomize Scale", RandomizeScale);
+        }
+
+        public override void Generate(Transform parent)
+        {
+            for (int i = 0; i < NumberOfObjects; i++)
+            {
+                float angle = i * Mathf.PI * 2f / NumberOfObjects * 2f;
+                float radius = RadiusStart + RadiusGrowth * angle / (2f * Mathf.PI);
+                float x = Mathf.Cos(angle) * radius;
+                float z = Mathf.Sin(angle) * radius;
+                float y = HeightStep * i;
+
+                Vector3 position = new Vector3(x, y, z);
+                Quaternion rotation = Quaternion.LookRotation(new Vector3(x, 0, z).normalized, Vector3.up);
+                InstantiatePrefab(position, rotation, parent);
+            }
+        }
+
+       
+
     }
 
     [System.Serializable]
